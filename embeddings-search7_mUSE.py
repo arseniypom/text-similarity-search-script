@@ -5,7 +5,7 @@ import pymorphy2
 import nltk
 import tensorflow as tf
 import tensorflow_hub as hub
-# import tensorflow_text
+import tensorflow_text
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.spatial.distance import cosine
@@ -29,7 +29,6 @@ def lemmatize(text):
     words = nltk.word_tokenize(text)
     lemmas = [morph.parse(word)[0].normal_form for word in words]
     return " ".join(lemmas)
-
 
 # Функция для расширения запроса синонимами
 def expand_query_with_synonyms(query, synonyms):
@@ -69,23 +68,6 @@ def compute_embeddings(texts):
 
 # Вычисление эмбеддингов для абзацев и запроса
 paragraph_embeddings = compute_embeddings(lemmatized_paragraphs)
-query_embedding = compute_embeddings([lemmatized_query])[0]
-
-# Вычисление и комбинирование схожестей
-neural_similarities = [
-    1 - cosine(query_embedding, paragraph_embedding)
-    for paragraph_embedding in paragraph_embeddings
-]
-
-combined_similarities = [
-    0.3 * tfidf_sim + 0.7 * neural_sim
-    for tfidf_sim, neural_sim in zip(tfidf_similarities, neural_similarities)
-]
-
-# Получение лучшего совпадения
-indexed_similarities = list(enumerate(combined_similarities))
-sorted_similarities = sorted(indexed_similarities, key=lambda x: x[1], reverse=True)
-
 
 # Список запросов для поиска
 queries = [
@@ -105,14 +87,14 @@ def search_and_write_to_file(query, file):
     query_tfidf_vector = vectorizer.transform([lemmatized_query])
     tfidf_similarities = np.dot(X, query_tfidf_vector.T).toarray().flatten()
     
-    query_embedding = model.encode(lemmatized_query)
+    query_embedding = compute_embeddings([lemmatized_query])[0]
     neural_similarities = [
         1 - cosine(query_embedding, paragraph_embedding)
         for paragraph_embedding in paragraph_embeddings
     ]
     
     combined_similarities = [
-        0.3 * tfidf_sim + 0.7 * neural_sim
+        0.5 * tfidf_sim + 0.5 * neural_sim
         for tfidf_sim, neural_sim in zip(tfidf_similarities, neural_similarities)
     ]
     
@@ -123,9 +105,9 @@ def search_and_write_to_file(query, file):
     if sorted_similarities:
         for i, (index, similarity) in enumerate(sorted_similarities[:3]):
             file.write(f"------- {i + 1} BEST: {paragraphs[index]}\n")
-    file.write("===\n")
+    file.write("==============\n")
 
 # Открытие файла и выполнение поиска для каждого запроса
-with open("search_results7.txt", "w", encoding="utf-8") as file:
+with open("search_results/search_results7.txt", "w", encoding="utf-8") as file:
     for query in queries:
         search_and_write_to_file(query, file)
