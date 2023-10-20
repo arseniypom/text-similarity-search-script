@@ -63,23 +63,6 @@ model = SentenceTransformer("cointegrated/rubert-tiny2")
 
 # Вычисление эмбеддингов для абзацев и запроса
 paragraph_embeddings = model.encode(lemmatized_paragraphs)
-query_embedding = model.encode(lemmatized_query)
-
-# Вычисление и комбинирование схожестей
-neural_similarities = [
-    1 - cosine(query_embedding, paragraph_embedding)
-    for paragraph_embedding in paragraph_embeddings
-]
-
-combined_similarities = [
-    0.3 * tfidf_sim + 0.7 * neural_sim
-    for tfidf_sim, neural_sim in zip(tfidf_similarities, neural_similarities)
-]
-
-# Получение лучшего совпадения
-indexed_similarities = list(enumerate(combined_similarities))
-sorted_similarities = sorted(indexed_similarities, key=lambda x: x[1], reverse=True)
-
 
 # Список запросов для поиска
 queries = [
@@ -120,6 +103,6 @@ def search_and_write_to_file(query, file):
     file.write("===\n")
 
 # Открытие файла и выполнение поиска для каждого запроса
-with open("search_results6.txt", "w", encoding="utf-8") as file:
+with open("search_results/search_results6.txt", "w", encoding="utf-8") as file:
     for query in queries:
         search_and_write_to_file(query, file)
