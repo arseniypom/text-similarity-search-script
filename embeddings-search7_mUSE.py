@@ -60,7 +60,7 @@ query_tfidf_vector = vectorizer.transform([lemmatized_query])
 tfidf_similarities = np.dot(X, query_tfidf_vector.T).toarray().flatten()
 
 # Инициализация модели Universal Sentence Encoder
-model = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual-large/3")
+model = hub.load("universal-sentence-encoder-multilingual-large_3")
 
 # Функция для вычисления эмбеддингов с использованием USE
 def compute_embeddings(texts):
@@ -94,7 +94,7 @@ def search_and_write_to_file(query, file):
     ]
     
     combined_similarities = [
-        0.5 * tfidf_sim + 0.5 * neural_sim
+        0.1 * tfidf_sim + 0.9 * neural_sim
         for tfidf_sim, neural_sim in zip(tfidf_similarities, neural_similarities)
     ]
     
@@ -104,10 +104,10 @@ def search_and_write_to_file(query, file):
     file.write(f"QUERY: {query}\n")
     if sorted_similarities:
         for i, (index, similarity) in enumerate(sorted_similarities[:3]):
-            file.write(f"------- {i + 1} BEST: {paragraphs[index]}\n")
+            file.write(f"------- {i + 1} BEST: {paragraphs[index][:100]}\n")
     file.write("==============\n")
 
 # Открытие файла и выполнение поиска для каждого запроса
-with open("search_results/search_results7.txt", "w", encoding="utf-8") as file:
+with open("search_results/search_results777.txt", "w", encoding="utf-8") as file:
     for query in queries:
         search_and_write_to_file(query, file)
